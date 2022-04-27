@@ -1,8 +1,10 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyPlugin = require("copy-webpack-plugin");
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const buildDirectory = 'dist';
 const outputDirectory = buildDirectory + '/client';
+
 module.exports = {
     mode: 'development',
     entry: './src/client/index.js',
@@ -32,6 +34,16 @@ module.exports = {
     plugins: [
         new CleanWebpackPlugin({
           cleanOnceBeforeBuildPatterns: [path.join(__dirname, buildDirectory)]
+        }),
+        new CopyPlugin({
+          patterns: [
+            { 
+              from: path.resolve(__dirname, 'uploads'), 
+              to: path.resolve(__dirname, 'dist/client/uploads') 
+            }],
+          options: {
+            concurrency: 100          
+          }
         }),
         new HtmlWebpackPlugin({
           template: './public/index.html'
