@@ -29,10 +29,13 @@
     "graphql": "^16.4.0",
     "graphql-tools": "^8.2.8",
     "helmet": "^5.0.2",
+    "mysql2": "^2.3.3",
     "nodemon": "^2.0.15",
     "react": "^18.1.0",
     "react-dom": "^18.1.0",
-    "react-helmet": "^6.1.0"
+    "react-helmet": "^6.1.0",
+    "sequelize": "^6.19.0",
+    "winston": "^3.7.2"
   },
   "devDependencies": {
     "@babel/core": "^7.17.9",

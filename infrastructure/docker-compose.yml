@@ -1,0 +1,31 @@
+version: '3.8'
+ 
+services:
+  #Configure MySQL Container
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: graphbook_dev
+      MYSQL_USER: devuser
+      MYSQL_PASSWORD: devuser
+    ports:
+      - "6033:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+  #Configure Phpmyadmin Container
+  phpmyadmin:
+    image: phpmyadmin:5.1.3
+    container_name: phpmyadmin
+    links:
+      - mysql
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_ARBITRARY: 1
+    restart: always
+    ports:
+      - 8081:80
+volumes:
+  dbdata:
