@@ -4,6 +4,7 @@ module.exports = {
         "password": "devuser",
         "database": "graphbook_dev",
         "host": "localhost",
+        "port": 6033,
         "dialect": "mysql",
         "operatorsAliases": "false",
         "pool": {
@@ -15,6 +16,7 @@ module.exports = {
     },
     "production": {
         "host": process.env.host,
+        "port": 6033,
         "username": process.env.username,
         "password": process.env.password,
         "database": process.env.database,
