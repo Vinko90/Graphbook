@@ -25,6 +25,11 @@ export default function resolver(){
             users(chat, args, context) {
                 return chat.getUsers();
             },
+            lastMessage(chat, args, context) {
+                return chat.getMessages({limit: 1, order: [['id', 'DESC']]}).then((message) => {
+                    return message[0];
+                });
+            },
         },
         RootQuery: {
             posts(root, args, context){
@@ -43,23 +48,43 @@ export default function resolver(){
             },
             chats(root, args, context) {
                 return User.findAll().then((users) => {
-                if (!users.length) {
-                    return [];
+                    if (!users.length) {
+                        return [];
+                    }
+                
+                    const usersRow = users[0];
+                
+                    return Chat.findAll({
+                        include: [{
+                            model: User,
+                            required: true,
+                            through: { where: { userId: usersRow.id } },
+                        },
+                        {
+                            model: Message,
+                        }],
+                    });
+                });
+            },
+            postsFeed(root, { page, limit }, context) {
+                var skip = 0;
+              
+                if(page && limit) {
+                  skip = page * limit;
                 }
-            
-                const usersRow = users[0];
-            
-                return Chat.findAll({
-                    include: [{
-                    model: User,
-                    required: true,
-                    through: { where: { userId: usersRow.id } },
-                    },
-                    {
-                    model: Message,
-                    }],
-                });
-                });
+              
+                var query = {
+                  order: [['createdAt', 'DESC']],
+                  offset: skip,
+                };
+              
+                if(limit) {
+                  query.limit = limit;
+                }
+              
+                return {
+                 posts: Post.findAll(query)
+                };
             },
         },
         RootMutation: {
@@ -70,6 +95,7 @@ export default function resolver(){
                 });
                 return User.findAll().then((users) => {
                     const usersRow = users[0];
+                    
                     return Post.create({
                         ...post,
                     }).then((newPost) => {
