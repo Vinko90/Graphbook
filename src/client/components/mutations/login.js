@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { Mutation } from '@apollo/client/react/components';
-import { gql } from '@apollo/client';
+import { Mutation } from "react-apollo";
+import gql from "graphql-tag";
 
 const LOGIN = gql`
   mutation login($email : String!, $password : String!) {

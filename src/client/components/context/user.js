@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ApolloConsumer } from '@apollo/client';
+import { ApolloConsumer } from 'react-apollo';
 
 export class UserConsumer extends Component {
     render() {

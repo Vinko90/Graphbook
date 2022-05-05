@@ -35,16 +35,10 @@ module.exports = {
         new CleanWebpackPlugin({
           cleanOnceBeforeBuildPatterns: [path.join(__dirname, buildDirectory)]
         }),
-        new CopyPlugin({
-          patterns: [
-            { 
-              from: path.resolve(__dirname, 'uploads'), 
-              to: path.resolve(__dirname, 'dist/client/uploads') 
-            }],
-          options: {
-            concurrency: 100          
-          }
-        }),
+        new CopyPlugin([{
+          from: path.resolve(__dirname, 'uploads'),
+          to: path.resolve(__dirname, 'dist/client/uploads'),
+        }]),
         new HtmlWebpackPlugin({
           template: './public/index.html'
         })

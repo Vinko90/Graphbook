@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { Query } from '@apollo/client/react/components';
-import { gql } from '@apollo/client';
+import { Query } from "react-apollo";
+import gql from "graphql-tag";
 
 const GET_USERS = gql`
     query usersSearch($page: Int, $limit: Int, $text: String!) { 

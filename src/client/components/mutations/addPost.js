@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { Mutation } from '@apollo/client/react/components';
-import { gql } from '@apollo/client';
+import { Mutation } from "react-apollo";
+import gql from "graphql-tag";
 
 const GET_POSTS = gql`
   query postsFeed($page: Int, $limit: Int) { 
