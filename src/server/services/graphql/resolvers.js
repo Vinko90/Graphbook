@@ -1,13 +1,17 @@
 import logger from '../../helpers/logger';
+import Sequelize from 'sequelize';
 
-export default function resolver(){
+const Op = Sequelize.Op;
+
+export default function resolver() {
     const { db } = this;
     const { Post, User, Chat, Message } = db.models;
+
 
     const resolvers = {
         Post: {
             user(post, args, context) {
-                return post.getUser();
+              return post.getUser();
             },
         },
         Message: {
@@ -32,18 +36,18 @@ export default function resolver(){
             },
         },
         RootQuery: {
-            posts(root, args, context){
+            posts(root, args, context) {
                 return Post.findAll({order: [['createdAt', 'DESC']]});
             },
             chat(root, { chatId }, context) {
-                return Chat.findByPk(chatId, {
-                  include: [{
-                    model: User,
-                    required: true,
-                  },
-                  {
-                    model: Message,
-                  }],
+                return Chat.findById(chatId, {
+                    include: [{
+                        model: User,
+                        required: true,
+                    },
+                    {
+                        model: Message,
+                    }],
                 });
             },
             chats(root, args, context) {
@@ -70,29 +74,56 @@ export default function resolver(){
                 var skip = 0;
               
                 if(page && limit) {
-                  skip = page * limit;
+                    skip = page * limit;
                 }
               
                 var query = {
-                  order: [['createdAt', 'DESC']],
-                  offset: skip,
+                    order: [['createdAt', 'DESC']],
+                    offset: skip,
                 };
               
                 if(limit) {
-                  query.limit = limit;
+                    query.limit = limit;
                 }
               
                 return {
-                 posts: Post.findAll(query)
+                    posts: Post.findAll(query)
+                };
+            },
+            usersSearch(root, { page, limit, text }, context) {
+                if(text.length < 3) {
+                    return {
+                        users: []
+                    };
+                }
+                var skip = 0;
+                if(page && limit) {
+                    skip = page * limit;
+                }
+                var query = {
+                    order: [['createdAt', 'DESC']],
+                    offset: skip,
+                };
+                if(limit) {
+                    query.limit = limit;
+                }
+                query.where = {
+                    username: {
+                        [Op.like]: '%' + text + '%'
+                    }
+                };
+                return {
+                    users: User.findAll(query)
                 };
             },
         },
         RootMutation: {
-            addPost(root, { post }, context){
+            addPost(root, { post }, context) {
                 logger.log({
                     level: 'info',
                     message: 'Post was created',
                 });
+               
                 return User.findAll().then((users) => {
                     const usersRow = users[0];
                     
@@ -109,8 +140,8 @@ export default function resolver(){
             },
             addChat(root, { chat }, context) {
                 logger.log({
-                  level: 'info',
-                  message: 'Chat was created',
+                    level: 'info',
+                    message: 'Message was created',
                 });
                 return Chat.create().then((newChat) => {
                     return Promise.all([
@@ -122,26 +153,70 @@ export default function resolver(){
             },
             addMessage(root, { message }, context) {
                 logger.log({
-                  level: 'info',
-                  message: 'Message was created',
+                    level: 'info',
+                    message: 'Message was created',
                 });
                
                 return User.findAll().then((users) => {
-                  const usersRow = users[0];
-               
-                  return Message.create({
-                    ...message,
-                  }).then((newMessage) => {
-                    return Promise.all([
-                      newMessage.setUser(usersRow.id),
-                      newMessage.setChat(message.chatId),
-                    ]).then(() => {
-                      return newMessage;
+                    const usersRow = users[0];
+                
+                    return Message.create({
+                        ...message,
+                    }).then((newMessage) => {
+                        return Promise.all([
+                            newMessage.setUser(usersRow.id),
+                            newMessage.setChat(message.chatId),
+                        ]).then(() => {
+                            return newMessage;
+                        });
                     });
-                  });
                 });
             },
-        },
+            updatePost(root, { post, postId }, context) {
+                return Post.update({
+                    ...post,
+                },
+                {
+                    where: {
+                        id: postId
+                    }
+                }).then((rows) => {
+                    if(rows[0] === 1) {
+                        logger.log({
+                            level: 'info',
+                            message: 'Post ' + postId + ' was updated',
+                        });
+                        
+                        return Post.findById(postId);
+                    }
+                });
+            },
+            deletePost(root, { postId }, context) {
+                return Post.destroy({
+                  where: {
+                    id: postId
+                  }
+                }).then(function(rows){
+                    if(rows === 1){
+                        logger.log({
+                            level: 'info',
+                            message: 'Post ' + postId + 'was deleted',
+                        });
+                        return {
+                            success: true
+                        };
+                    }
+                    return {
+                        success: false
+                    };
+                }, function(err){
+                    logger.log({
+                        level: 'error',
+                        message: err.message,
+                    });
+                });
+            },
+        }
     };
 
     return resolvers;
