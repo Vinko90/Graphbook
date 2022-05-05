@@ -3,6 +3,7 @@ import { Helmet } from 'react-helmet';
 import Feed from './Feed';
 import Chats from './Chats';
 import Bar from './components/bar';
+import './components/fontawesome';
 import '../../assets/css/style.css'
 
 export default class App extends Component {
