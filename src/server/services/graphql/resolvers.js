@@ -41,6 +41,9 @@ export default function resolver() {
             },
         },
         RootQuery: {
+            currentUser(root, args, context) {
+                return context.user;
+            },
             posts(root, args, context) {
                 return Post.findAll({order: [['createdAt', 'DESC']]});
             },
@@ -56,23 +59,15 @@ export default function resolver() {
                 });
             },
             chats(root, args, context) {
-                return User.findAll().then((users) => {
-                    if (!users.length) {
-                        return [];
-                    }
-                
-                    const usersRow = users[0];
-                
-                    return Chat.findAll({
-                        include: [{
-                            model: User,
-                            required: true,
-                            through: { where: { userId: usersRow.id } },
-                        },
-                        {
-                            model: Message,
-                        }],
-                    });
+                return Chat.findAll({
+                    include: [{
+                        model: User,
+                        required: true,
+                        through: { where: { userId: context.user.id } },
+                    },
+                    {
+                        model: Message,
+                    }],
                 });
             },
             postsFeed(root, { page, limit }, context) {
@@ -161,19 +156,15 @@ export default function resolver() {
                     level: 'info',
                     message: 'Message was created',
                 });
-               
-                return User.findAll().then((users) => {
-                    const usersRow = users[0];
-                
-                    return Message.create({
-                        ...message,
-                    }).then((newMessage) => {
-                        return Promise.all([
-                            newMessage.setUser(usersRow.id),
-                            newMessage.setChat(message.chatId),
-                        ]).then(() => {
-                            return newMessage;
-                        });
+                return Message.create({
+                    ...message,
+                }).then((newMessage) => {
+                    return Promise.all([
+                        newMessage.setUser(context.user.id),
+                        newMessage.setChat(message.chatId),
+                    ]).then(() => {
+                        pubsub.publish('messageAdded', {messageAdded: newMessage});
+                        return newMessage;
                     });
                 });
             },
@@ -192,7 +183,7 @@ export default function resolver() {
                             message: 'Post ' + postId + ' was updated',
                         });
                         
-                        return Post.findById(postId);
+                        return Post.findByPk(postId);
                     }
                 });
             },
@@ -258,10 +249,10 @@ export default function resolver() {
                     } else {
                         return bcrypt.hash(password, 10).then((hash) => {
                             return User.create({
-                                avatar: "/uploads/avatar1.png",
                                 email,
                                 password: hash,
                                 username,
+                                avatar: "/uploads/avatar1.png",
                                 activated: 1,
                             }).then((newUser) => {
                                 const token = JWT.sign({ email, id: newUser.id }, JWT_SECRET, {

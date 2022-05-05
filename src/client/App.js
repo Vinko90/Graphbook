@@ -4,10 +4,21 @@ import Feed from './Feed';
 import Chats from './Chats';
 import Bar from './components/bar';
 import LoginRegisterForm from './components/loginregister';
+import CurrentUserQuery from './components/queries/currentUser';
 import './components/fontawesome';
 import '../../assets/css/style.css'
+import { withApollo } from "react-apollo";
 
-export default class App extends Component {
+class App extends Component {
+    constructor(props) {
+        super(props);
+        this.unsubscribe = props.client.onResetStore(
+            () => this.changeLoginState(false)
+        );
+    }
+    componentWillUnmount() {
+        this.unsubscribe();
+    }
     state = {
         loggedIn: false
     }
@@ -28,14 +39,16 @@ export default class App extends Component {
                     <meta name="description" content="Newsfeed of all your friends on Graphbook" />
                 </Helmet>
                 {this.state.loggedIn ?
-                    <div>
+                    <CurrentUserQuery>
                         <Bar />
                         <Feed />
                         <Chats />
-                    </div>
-                    : <LoginRegisterForm changeLoginState={this.changeLoginState} />
+                    </CurrentUserQuery>
+                    : <LoginRegisterForm changeLoginState={this.changeLoginState}/>
                 }
             </div>
         )
     }
 }
+
+export default withApollo(App)

@@ -33,19 +33,14 @@ app.use('/', express.static(path.join(root, 'dist/client')));
 app.use('/uploads', express.static(path.join(root, 'uploads')));
 
 const serviceNames = Object.keys(services);
-
-async function startServices(){
-    for (let i = 0; i < serviceNames.length; i += 1) {
-        const name = serviceNames[i];
-        if (name === 'graphql') {
-          await services[name].start();
-          services[name].applyMiddleware({ app });
-        } else {
-          app.use(`/${name}`, services[name]);
-        }
-      }
+for (let i = 0; i < serviceNames.length; i += 1) {
+  const name = serviceNames[i];
+  if (name === 'graphql') {
+    services[name].applyMiddleware({ app });
+  } else {
+    app.use(`/${name}`, services[name]);
+  }
 }
-startServices();
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(root, '/dist/client/index.html'));
